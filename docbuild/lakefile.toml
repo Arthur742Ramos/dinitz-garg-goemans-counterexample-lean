@@ -10,5 +10,5 @@ git = "https://github.com/leanprover/doc-gen4.git"
 rev = "v4.33.0"
 
 [[require]]
-name = "JacobianConjecture"
+name = "DinitzGargGoemans"
 path = "../"

@@ -2,15 +2,25 @@
   "challenge_module": "Challenge",
   "solution_module": "Solution",
   "theorem_names": [
-    "JacobianCounterexample.jacobianDet_F",
-    "JacobianCounterexample.explicit_three_point_fibre",
-    "JacobianCounterexample.not_jacobian_conjecture_complex"
+    "DinitzGargGoemans.allSourceTerminalPaths",
+    "DinitzGargGoemans.splitFlowFeasible",
+    "DinitzGargGoemans.fractionalCostValue",
+    "DinitzGargGoemans.boundedUnsplittableCost",
+    "DinitzGargGoemans.dggCounterexampleWitness",
+    "DinitzGargGoemans.weakDggCostConjectureFalse",
+    "DinitzGargGoemans.strictDggCostConjectureFalse"
   ],
   "definition_names": [
-    "MvPolynomial.jacobianMatrix",
-    "MvPolynomial.jacobianDet",
-    "MvPolynomial.evalMap",
-    "JacobianCounterexample.F"
+    "DinitzGargGoemans.fractionalLoad",
+    "DinitzGargGoemans.fractionalCost",
+    "DinitzGargGoemans.maximumDemand",
+    "DinitzGargGoemans.fractionalFeasible",
+    "DinitzGargGoemans.unsplittableLoad",
+    "DinitzGargGoemans.unsplittableCost",
+    "DinitzGargGoemans.weakDggRounding",
+    "DinitzGargGoemans.strictDggRounding",
+    "DinitzGargGoemans.counterexampleInstance",
+    "DinitzGargGoemans.splitFlow"
   ],
   "permitted_axioms": ["propext", "Quot.sound", "Classical.choice"],
   "enable_nanoda": true

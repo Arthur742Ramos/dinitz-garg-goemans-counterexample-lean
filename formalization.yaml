@@ -3,105 +3,157 @@
 version: "v0.4"
 
 project:
-  name: "Lean formalization of the Alpöge-Fable Jacobian counterexample"
+  name: "Lean formalization of the Dinitz--Garg--Goemans cost counterexample"
   description: >-
-    An independent Lean 4 and Mathlib formalization of the explicit
-    three-dimensional polynomial map announced by Levent Alpöge in 2026.
-    The project proves that its formal Jacobian determinant is the nonzero
-    constant -2, verifies an explicit three-point fibre over the complex
-    numbers, and derives the failure of injectivity required to refute the
-    dimension-three Jacobian conjecture. The source formulas and proof scope
-    are recorded explicitly; no claim is made about the still-open
-    two-dimensional case.
+    A standalone Lean 4 and Mathlib formalization of the finite counterexample
+    to the cost-preserving single-source unsplittable-flow conjecture. The
+    development realizes a directed graph with seven vertices, nine arcs, and
+    three terminal demands; checks a feasible rational fractional flow of cost
+    58 with maximum demand 15; and proves that every unsplittable routing under
+    the weak additive congestion bound has cost at least 60. It also derives
+    the failure of the strict congestion variant. No general algorithmic or
+    complexity-theoretic claim is made.
   authors:
     - "Arthur Freitas Ramos"
     - "David Barros Hulak"
-    - "Ruy J. G. B. de Queiroz"
+    - "Ruy Jose Guerra Barretto de Queiroz"
   license: "Apache-2.0"
   responsible_maintainers:
     - "Arthur Freitas Ramos"
 
 classification:
-  arxiv: ["math.AG", "math.LO"]
-  msc2020: ["14R15", "03B35"]
+  arxiv: ["cs.DS", "math.LO"]
+  msc2020: ["68R10", "90C27", "03B35"]
 
 sources:
-  - title: "An explicit counterexample to the Jacobian conjecture"
+  - title: "A Formal Counterexample to the Cost-Preserving Single-Source Unsplittable Flow Conjecture"
     authors:
-      - "Levent Alpöge"
-    contributors:
-      - name: "Akhil Mathew"
-        role: "problem proposer credited in the announcement"
-      - name: "Claude Fable"
-        role: "AI collaborator credited in the announcement"
-    id: "https://x.com/__alpoge__/status/2079028340955197566"
+      - "Arthur Freitas Ramos"
+      - "David Barros Hulak"
+      - "Ruy Jose Guerra Barretto de Queiroz"
+    id: "https://isa-afp.org/entries/Dinitz_Garg_Goemans_Counterexample.html"
+    type: "formalization"
+    location: "https://isa-afp.org/entries/Dinitz_Garg_Goemans_Counterexample.html"
+    relationship: "independently-proves"
+    note: "This Lean development is a standalone reimplementation of the finite certificate in the Isabelle/AFP entry; it does not import Isabelle source or claim a new mathematical counterexample."
+  - title: "On the Single-Source Unsplittable Flow Problem"
+    authors:
+      - "Yefim Dinitz"
+      - "Naveen Garg"
+      - "Michel X. Goemans"
+    id: "https://doi.org/10.1007/s004930050043"
+    type: "paper"
+    location: "Combinatorica 19(1), 17--41 (1999)"
+    relationship: "background"
+    note: "The source paper establishes the additive-congestion rounding result and formulates the cost-preservation question addressed by the counterexample."
+  - title: "Counterexample to the Dinitz--Garg--Goemans Cost Conjecture"
+    authors:
+      - "Dmitry Rybin"
+    id: "https://x.com/DmitryRybin1"
     type: "web post"
-    location: "https://x.com/__alpoge__/status/2079028340955197566"
-    relationship: "formalizes"
-    note: "The Lean development formalizes the displayed map, its constant Jacobian determinant, and its explicit collision; it does not claim to formalize the discovery process or geometric explanations."
+    location: "https://x.com/DmitryRybin1"
+    relationship: "background"
+    note: "Announcement of the finite counterexample on July 22, 2026."
+  - title: "Single-Source Unsplittable Flows in Planar and Bounded-Genus Graphs"
+    authors:
+      - "Vera Traub"
+      - "Laura Vargas Koch"
+      - "Rico Zenklusen"
+    id: "https://doi.org/10.1007/s10107-026-02365-x"
+    type: "paper"
+    location: "Mathematical Programming (2026)"
+    relationship: "background"
+    note: "Related current literature listed by the AFP source entry."
 
 related_formalizations:
-  - id: "https://github.com/deancureton/jacobian/tree/0d4a9212d874226ad81ce5a926becddfa94e6a88"
+  - id: "https://isa-afp.org/entries/Dinitz_Garg_Goemans_Counterexample.html"
     relationship: "independent"
-    note: "A public Lean formalization of the same map was audited as related work. This repository re-derives the declarations and does not import its code."
-  - id: "https://isa-afp.org/entries/Jacobian_Counterexample.html"
-    relationship: "independent"
-    note: "An Isabelle/HOL formalization of the same explicit map provides a separate proof-assistant formalization and broader identity-padding results."
+    note: "The Isabelle/HOL AFP entry formalizes the same finite certificate; this repository provides a separate Lean/Mathlib development."
 
 status:
   scope: >-
-    The formalization defines multivariate-polynomial Jacobians and evaluation,
-    encodes the announced map, proves the determinant identity over every
-    field, and proves the displayed three-point collision and the resulting
-    noninjectivity over the complex numbers. It does not formalize a general
-    theory of polynomial automorphisms, the source's geometric explanation,
-    or the dimension-two Jacobian conjecture.
+    The formalization defines a finite path-flow model over rational numbers,
+    encodes the seven-vertex directed instance and its two routes per
+    commodity, proves that the displayed routes are exactly all source-to-
+    terminal paths, verifies feasibility and cost 58 of the fractional flow,
+    and proves the lower bound 60 for every weakly bounded unsplittable
+    routing. It proves both weak and strict conjecture-negation corollaries.
+    It does not formalize the general Dinitz--Garg--Goemans rounding theorem,
+    an algorithm, a complexity classification, or the Isabelle implementation.
   sorry_count: 0
   sorry_in_definitions: 0
   axioms: []
   main_results:
-    - "JacobianCounterexample.not_jacobian_conjecture_complex"
+    - "DinitzGargGoemans.dggCounterexampleWitness"
+    - "DinitzGargGoemans.weakDggCostConjectureFalse"
+    - "DinitzGargGoemans.strictDggCostConjectureFalse"
 
 automation:
   methods:
     - method: "agent"
       models: ["GPT-5"]
       framework: "Lean 4 and Mathlib"
-      tool_setup: "Proof engineering with simp, norm_num, field_simp, linear arithmetic, and ring; exact source and repository audits were performed before submission preparation."
+      tool_setup: "Proof engineering with simp, norm_num, linarith, ring, exact finite case analysis, and the pinned Lean/Mathlib toolchain."
       cost:
         wall_time: "not tracked"
         spend_usd: "subscription-based"
         hardware: "local macOS workstation"
-      prompting_notes: "Re-derive and verify the published polynomial map in Lean, preserving exact attribution and the distinction between determinant and noninjectivity."
+      prompting_notes: "Port the published finite Isabelle certificate into an independently checked Lean statement/proof split while preserving source attribution and the rational-versus-real scope distinction."
   spend_usd: "subscription-based"
-  notes: "The formalization was developed with agent assistance and is intended for maintainer review; the final source is checked by Lean rather than relying on external computer algebra."
+  notes: "The development was prepared with agent assistance and checked by Lean; Comparator and NanoDa are used for the Palomar statement, proof, and axiom audit."
 
 fidelity:
-  divergences: "The source announcement presents the complex three-dimensional map informally. The Lean definitions are polymorphic over fields where possible, while the advertised conjecture-negation theorem specializes to ℂ. The formalization proves the displayed collision rather than a complete description of the fibre and does not formalize later geometric or dynamical claims."
+  divergences: >-
+    The Isabelle source uses a generic model with real-valued data, while this
+    Lean certificate uses exact rational arithmetic. Since every displayed
+    datum and inequality is rational, the finite certificate embeds into the
+    real-valued model. The Lean project reimplements the certificate rather
+    than importing Isabelle code, and it does not formalize the general
+    rounding theorem or any algorithmic/complexity claims.
 
 review:
   status: "self-assessed"
   reviewers:
     - "none"
-  notes: "The map, determinant identity, collision, and final implication were checked in Lean 4 with pinned Mathlib. The public source and a separate Lean formalization were audited for attribution and scope; no external peer review is claimed."
+  notes: "The proof builds with Lean 4.33.0 and pinned Mathlib. The theorem surface, source attribution, exact numerical certificate, and rational scope were audited locally; no external peer review is claimed."
 
 alignment:
-  namespace: "JacobianCounterexample"
+  namespace: "DinitzGargGoemans"
   statements:
-    - source: "Displayed map and determinant calculation"
-      lean: "JacobianCounterexample.jacobianDet_F"
-      module: "JacobianConjecture.Proof"
+    - source: "All source-to-terminal paths in the seven-vertex graph"
+      lean: "DinitzGargGoemans.allSourceTerminalPaths"
+      module: "DinitzGargGoemans.Proof"
       status: "proved"
-      note: "The formal Jacobian determinant is identically the nonzero constant -2."
-    - source: "Displayed three-point fibre"
-      lean: "JacobianCounterexample.explicit_three_point_fibre"
-      module: "JacobianConjecture.Proof"
+      note: "Every path from the source to a commodity terminal is exactly its paid or free route."
+    - source: "Feasible fractional witness"
+      lean: "DinitzGargGoemans.splitFlowFeasible"
+      module: "DinitzGargGoemans.Proof"
       status: "proved"
-      note: "All three exact rational points map to (-1/4, 0, 0) over ℂ."
-    - source: "Dimension-three consequence"
-      lean: "JacobianCounterexample.not_jacobian_conjecture_complex"
-      module: "JacobianConjecture.Proof"
+      note: "The six route fractions meet all demands and capacity constraints."
+    - source: "Fractional witness cost"
+      lean: "DinitzGargGoemans.fractionalCostValue"
+      module: "DinitzGargGoemans.Proof"
       status: "proved"
-      note: "A nonzero constant formal Jacobian determinant does not force injectivity in this dimension."
+      note: "The fractional routing has exact cost 58."
+    - source: "Unsplittable cost lower bound"
+      lean: "DinitzGargGoemans.boundedUnsplittableCost"
+      module: "DinitzGargGoemans.Proof"
+      status: "proved"
+      note: "The weak additive congestion bound forces at least two paid routes, hence cost at least 60."
+    - source: "Finite counterexample witness"
+      lean: "DinitzGargGoemans.dggCounterexampleWitness"
+      module: "DinitzGargGoemans.Proof"
+      status: "proved"
+      note: "Combines well-formedness, fractional feasibility, and failure of cost-preserving weak rounding."
+    - source: "Weak cost-preservation conjecture"
+      lean: "DinitzGargGoemans.weakDggCostConjectureFalse"
+      module: "DinitzGargGoemans.Proof"
+      status: "proved"
+      note: "The universal weak cost-preservation property is refuted by the concrete instance."
+    - source: "Strict cost-preservation variant"
+      lean: "DinitzGargGoemans.strictDggCostConjectureFalse"
+      module: "DinitzGargGoemans.Proof"
+      status: "proved"
+      note: "Strict congestion rounding implies weak rounding, so the strict universal property is also false."
 
-acknowledgements: "Mathlib and the Lean community; Levent Alpöge, Akhil Mathew, and Claude Fable for the announced construction and its credited origins; Dean Cureton for the related public Lean formalization; and the Isabelle/HOL formalization recorded at the Archive of Formal Proofs."
+acknowledgements: "Lean and Mathlib; Yefim Dinitz, Naveen Garg, and Michel X. Goemans for the original single-source unsplittable-flow result and cost question; Dmitry Rybin for the announced finite counterexample; Arthur Freitas Ramos, David Barros Hulak, and Ruy Jose Guerra Barretto de Queiroz for the Isabelle/AFP formalization; and the Archive of Formal Proofs for the source entry."

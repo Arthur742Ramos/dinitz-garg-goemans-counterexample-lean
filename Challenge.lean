@@ -1,85 +1,297 @@
-import Mathlib.Algebra.MvPolynomial.Eval
-import Mathlib.Algebra.MvPolynomial.PDeriv
-import Mathlib.Data.Fin.Tuple.Basic
-import Mathlib.Data.Complex.Basic
-import Mathlib.LinearAlgebra.Matrix.Determinant.Basic
+import Mathlib.Algebra.BigOperators.Group.Finset.Basic
+import Mathlib.Algebra.Order.Ring.Rat
+import Mathlib.Data.Fintype.Order
+import Mathlib.Data.List.Basic
+import Mathlib.Data.Rat.Lemmas
 
-open Function
+open scoped BigOperators
 
-noncomputable section
+namespace DinitzGargGoemans
 
-namespace MvPolynomial
+/-! A finite rational path-flow model for the Dinitz--Garg--Goemans
+counterexample.  The definitions are repeated here so that this statement
+surface has no dependency on the completed solution module. -/
 
-variable {R : Type*} {σ : Type*}
+structure PathFlowInstance (Commodity Route Arc : Type*) where
+  admissible : Commodity → Route → Prop
+  demand : Commodity → ℚ
+  capacity : Arc → ℚ
+  cost : Arc → ℚ
+  uses : Commodity → Route → Arc → Prop
 
-/-! These definitions are repeated here so the challenge can be audited and
-compiled without importing project-specific source. -/
+noncomputable def fractionalLoad
+    [Fintype Commodity] [Fintype Route]
+    (I : PathFlowInstance Commodity Route Arc)
+    (f : Commodity → Route → ℚ) (a : Arc) : ℚ := by
+  classical
+  exact ∑ k, ∑ r, if I.uses k r a then f k r else 0
 
-/-- The formal Jacobian matrix of a family of multivariate polynomials. -/
-def jacobianMatrix [CommSemiring R] [DecidableEq σ]
-    (F : σ → MvPolynomial σ R) : Matrix σ σ (MvPolynomial σ R) :=
-  Matrix.of fun i j => pderiv j (F i)
+noncomputable def fractionalCost
+    [Fintype Commodity] [Fintype Route] [Fintype Arc]
+    (I : PathFlowInstance Commodity Route Arc)
+    (f : Commodity → Route → ℚ) : ℚ :=
+  ∑ a, I.cost a * fractionalLoad I f a
 
-/-- The formal determinant of the Jacobian matrix of `F`. -/
-def jacobianDet [CommRing R] [Fintype σ] [DecidableEq σ]
-    (F : σ → MvPolynomial σ R) : MvPolynomial σ R :=
-  (jacobianMatrix F).det
+noncomputable def maximumDemand
+    [Fintype Commodity] [Nonempty Commodity]
+    (I : PathFlowInstance Commodity Route Arc) : ℚ := by
+  classical
+  exact (Finset.univ.image I.demand).max' (by simp)
 
-/-- The polynomial self-map induced by a family of multivariate polynomials. -/
-def evalMap [CommSemiring R] (F : σ → MvPolynomial σ R) (p : σ → R) : σ → R :=
-  fun i => eval p (F i)
+def wellFormedInstance
+    (I : PathFlowInstance Commodity Route Arc) : Prop :=
+  (∀ k, 0 < I.demand k ∧ ∃ r, I.admissible k r) ∧
+    ∀ a, 0 ≤ I.capacity a ∧ 0 ≤ I.cost a
 
-end MvPolynomial
+noncomputable def fractionalFeasible
+    [Fintype Commodity] [Fintype Route]
+    (I : PathFlowInstance Commodity Route Arc)
+    (f : Commodity → Route → ℚ) : Prop :=
+  wellFormedInstance I ∧
+    (∀ k r, 0 ≤ f k r) ∧
+    (∀ k r, ¬ I.admissible k r → f k r = 0) ∧
+    (∀ k, (∑ r, f k r) = I.demand k) ∧
+    (∀ a, fractionalLoad I f a ≤ I.capacity a)
 
-namespace JacobianCounterexample
+def unsplittableRouting
+    (I : PathFlowInstance Commodity Route Arc)
+    (q : Commodity → Route) : Prop :=
+  ∀ k, I.admissible k (q k)
 
-open MvPolynomial
+noncomputable def unsplittableLoad
+    [Fintype Commodity]
+    (I : PathFlowInstance Commodity Route Arc)
+    (q : Commodity → Route) (a : Arc) : ℚ := by
+  classical
+  exact ∑ k, if I.uses k (q k) a then I.demand k else 0
 
-variable (K : Type*) [Field K]
+noncomputable def unsplittableCost
+    [Fintype Commodity] [Fintype Arc]
+    (I : PathFlowInstance Commodity Route Arc)
+    (q : Commodity → Route) : ℚ :=
+  ∑ a, I.cost a * unsplittableLoad I q a
 
-/-- The three coordinate polynomials of the announced map. -/
-def F : Fin 3 → MvPolynomial (Fin 3) K :=
-  ![(1 + X 0 * X 1) ^ 3 * X 2 + X 1 ^ 2 * (1 + X 0 * X 1) *
-      (C 4 + C 3 * (X 0 * X 1)),
-    X 1 + C 3 * X 0 * (1 + X 0 * X 1) ^ 2 * X 2 +
-      C 3 * X 0 * X 1 ^ 2 * (C 4 + C 3 * (X 0 * X 1)),
-    C 2 * X 0 - C 3 * X 0 ^ 2 * X 1 - X 0 ^ 3 * X 2]
+noncomputable def weakDggRounding
+    [Fintype Commodity] [Fintype Route] [Fintype Arc] [Nonempty Commodity]
+    (I : PathFlowInstance Commodity Route Arc)
+    (f : Commodity → Route → ℚ)
+    (q : Commodity → Route) : Prop :=
+  unsplittableRouting I q ∧
+    (∀ a, unsplittableLoad I q a ≤ fractionalLoad I f a + maximumDemand I) ∧
+    unsplittableCost I q ≤ fractionalCost I f
 
-end JacobianCounterexample
+noncomputable def strictDggRounding
+    [Fintype Commodity] [Fintype Route] [Fintype Arc] [Nonempty Commodity]
+    (I : PathFlowInstance Commodity Route Arc)
+    (f : Commodity → Route → ℚ)
+    (q : Commodity → Route) : Prop :=
+  unsplittableRouting I q ∧
+    (∀ a, unsplittableLoad I q a < fractionalLoad I f a + maximumDemand I) ∧
+    unsplittableCost I q ≤ fractionalCost I f
 
-/-!
-# Advertised statement
+noncomputable def weakDggProperty
+    [Fintype Commodity] [Fintype Route] [Fintype Arc] [Nonempty Commodity]
+    (I : PathFlowInstance Commodity Route Arc)
+    (f : Commodity → Route → ℚ) : Prop :=
+  ∃ q, weakDggRounding I f q
 
-This is the small statement surface for an explicit counterexample to the
-Jacobian conjecture. The definitions are ordinary multivariate polynomials;
-the proof is supplied separately in `Solution.lean` and checked by Comparator.
--/
+noncomputable def strictDggProperty
+    [Fintype Commodity] [Fintype Route] [Fintype Arc] [Nonempty Commodity]
+    (I : PathFlowInstance Commodity Route Arc)
+    (f : Commodity → Route → ℚ) : Prop :=
+  ∃ q, strictDggRounding I f q
 
-variable (K : Type*) [Field K]
+noncomputable def dggCounterexample
+    [Fintype Commodity] [Fintype Route] [Fintype Arc] [Nonempty Commodity]
+    (I : PathFlowInstance Commodity Route Arc)
+    (f : Commodity → Route → ℚ) : Prop :=
+  wellFormedInstance I ∧ fractionalFeasible I f ∧ ¬ weakDggProperty I f
 
-/-- The formal determinant of the announced map is the constant polynomial `-2`. -/
-theorem JacobianCounterexample.jacobianDet_F :
-    MvPolynomial.jacobianDet (JacobianCounterexample.F K) =
-      MvPolynomial.C (-2) := by
+inductive Vertex where
+  | source
+  | junctionU
+  | junctionV
+  | junctionW
+  | terminal1
+  | terminal2
+  | terminal3
+deriving DecidableEq
+
+instance : Fintype Vertex :=
+  Fintype.ofList
+    [.source, .junctionU, .junctionV, .junctionW,
+      .terminal1, .terminal2, .terminal3]
+    (by intro x; cases x <;> simp)
+
+inductive Commodity where
+  | one
+  | two
+  | three
+deriving DecidableEq
+
+instance : Fintype Commodity :=
+  Fintype.ofList [.one, .two, .three]
+    (by intro x; cases x <;> simp)
+
+instance : Nonempty Commodity := ⟨Commodity.one⟩
+
+inductive Arc where
+  | sT1
+  | sT2
+  | sU
+  | uV
+  | uT3
+  | vT1
+  | vW
+  | wT2
+  | wT3
+deriving DecidableEq
+
+instance : Fintype Arc :=
+  Fintype.ofList
+    [.sT1, .sT2, .sU, .uV, .uT3, .vT1, .vW, .wT2, .wT3]
+    (by intro x; cases x <;> simp)
+
+inductive RouteChoice where
+  | paid
+  | free
+deriving DecidableEq
+
+instance : Fintype RouteChoice :=
+  Fintype.ofList [.paid, .free]
+    (by intro x; cases x <;> simp)
+
+instance : Nonempty RouteChoice := ⟨RouteChoice.paid⟩
+
+def arcTail : Arc → Vertex
+  | .sT1 => .source
+  | .sT2 => .source
+  | .sU => .source
+  | .uV => .junctionU
+  | .uT3 => .junctionU
+  | .vT1 => .junctionV
+  | .vW => .junctionV
+  | .wT2 => .junctionW
+  | .wT3 => .junctionW
+
+def arcHead : Arc → Vertex
+  | .sT1 => .terminal1
+  | .sT2 => .terminal2
+  | .sU => .junctionU
+  | .uV => .junctionV
+  | .uT3 => .terminal3
+  | .vT1 => .terminal1
+  | .vW => .junctionW
+  | .wT2 => .terminal2
+  | .wT3 => .terminal3
+
+def commodityTerminal : Commodity → Vertex
+  | .one => .terminal1
+  | .two => .terminal2
+  | .three => .terminal3
+
+def edgePath : Vertex → List Arc → Vertex → Prop
+  | u, [], v => u = v
+  | u, a :: as, v => arcTail a = u ∧ edgePath (arcHead a) as v
+
+def routeEdges : Commodity → RouteChoice → List Arc
+  | .one, .paid => [.sT1]
+  | .one, .free => [.sU, .uV, .vT1]
+  | .two, .paid => [.sT2]
+  | .two, .free => [.sU, .uV, .vW, .wT2]
+  | .three, .paid => [.sU, .uT3]
+  | .three, .free => [.sU, .uV, .vW, .wT3]
+
+def demandAmount : Commodity → ℚ
+  | .one => 15
+  | .two => 10
+  | .three => 15
+
+def arcCapacity : Arc → ℚ
+  | .sT1 => 10
+  | .sT2 => 6
+  | .sU => 24
+  | .uV => 14
+  | .uT3 => 10
+  | .vT1 => 5
+  | .vW => 9
+  | .wT2 => 4
+  | .wT3 => 5
+
+def arcCost : Arc → ℚ
+  | .sT1 => 2
+  | .sT2 => 3
+  | .sU => 0
+  | .uV => 0
+  | .uT3 => 2
+  | .vT1 => 0
+  | .vW => 0
+  | .wT2 => 0
+  | .wT3 => 0
+
+def counterexampleUses (k : Commodity) (r : RouteChoice) (a : Arc) : Prop :=
+  a ∈ routeEdges k r
+
+def counterexampleInstance : PathFlowInstance Commodity RouteChoice Arc :=
+  { admissible := fun _ _ => True
+    demand := demandAmount
+    capacity := arcCapacity
+    cost := arcCost
+    uses := counterexampleUses }
+
+def splitFlow : Commodity → RouteChoice → ℚ
+  | .one, .paid => 10
+  | .one, .free => 5
+  | .two, .paid => 6
+  | .two, .free => 4
+  | .three, .paid => 10
+  | .three, .free => 5
+
+def paidCount (q : Commodity → RouteChoice) : ℕ :=
+  (if q .one = .paid then 1 else 0) +
+  (if q .two = .paid then 1 else 0) +
+  (if q .three = .paid then 1 else 0)
+
+/-! The following declarations are the advertised statement surface.  Their
+proofs are intentionally omitted here and supplied by `Solution.lean`. -/
+
+theorem allSourceTerminalPaths (k : Commodity) (as : List Arc) :
+    edgePath .source as (commodityTerminal k) ↔
+      as = routeEdges k .paid ∨ as = routeEdges k .free := by
   sorry
 
-variable {K}
-
-/-- Three explicit rational points lie in one fibre of the map over `ℂ`. -/
-theorem JacobianCounterexample.explicit_three_point_fibre :
-    MvPolynomial.evalMap (JacobianCounterexample.F ℂ)
-        ![0, 0, -(1 / 4)] = ![-(1 / 4), 0, 0] ∧
-      MvPolynomial.evalMap (JacobianCounterexample.F ℂ)
-        ![1, -(3 / 2), 13 / 2] = ![-(1 / 4), 0, 0] ∧
-      MvPolynomial.evalMap (JacobianCounterexample.F ℂ)
-        ![-1, 3 / 2, 13 / 2] = ![-(1 / 4), 0, 0] := by
+theorem splitFlowFeasible :
+    fractionalFeasible counterexampleInstance splitFlow := by
   sorry
 
-/-- The dimension-three Jacobian conjecture is false over the complex numbers. -/
-theorem JacobianCounterexample.not_jacobian_conjecture_complex :
-    ¬ ∀ P : Fin 3 → MvPolynomial (Fin 3) ℂ,
-      IsUnit (MvPolynomial.jacobianDet P) →
-        Injective (MvPolynomial.evalMap P) := by
+theorem fractionalCostValue :
+    fractionalCost counterexampleInstance splitFlow = 58 := by
   sorry
 
-end
+theorem boundedUnsplittableCost (q : Commodity → RouteChoice)
+    (bound : ∀ a,
+      unsplittableLoad counterexampleInstance q a ≤
+        fractionalLoad counterexampleInstance splitFlow a +
+          maximumDemand counterexampleInstance) :
+    60 ≤ unsplittableCost counterexampleInstance q := by
+  sorry
+
+theorem dggCounterexampleWitness :
+    dggCounterexample counterexampleInstance splitFlow := by
+  sorry
+
+theorem weakDggCostConjectureFalse :
+    ¬ (∀ (I : PathFlowInstance Commodity RouteChoice Arc)
+        (f : Commodity → RouteChoice → ℚ),
+        wellFormedInstance I ∧ fractionalFeasible I f →
+          weakDggProperty I f) := by
+  sorry
+
+theorem strictDggCostConjectureFalse :
+    ¬ (∀ (I : PathFlowInstance Commodity RouteChoice Arc)
+        (f : Commodity → RouteChoice → ℚ),
+        wellFormedInstance I ∧ fractionalFeasible I f →
+          strictDggProperty I f) := by
+  sorry
+
+end DinitzGargGoemans

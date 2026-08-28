@@ -3,7 +3,7 @@
  "packages":
  [{"type": "path",
    "scope": "",
-   "name": "JacobianConjecture",
+   "name": "DinitzGargGoemans",
    "manifestFile": "lake-manifest.json",
    "inherited": false,
    "dir": "../",

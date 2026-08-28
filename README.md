@@ -1,66 +1,63 @@
-# Lean formalization of the Jacobian conjecture counterexample
+# Lean formalization of the Dinitz--Garg--Goemans counterexample
 
-[![CI](https://github.com/Arthur742Ramos/jacobian-conjecture-lean/actions/workflows/ci.yml/badge.svg)](https://github.com/Arthur742Ramos/jacobian-conjecture-lean/actions/workflows/ci.yml)
+[![CI](https://github.com/Arthur742Ramos/dinitz-garg-goemans-counterexample-lean/actions/workflows/ci.yml/badge.svg)](https://github.com/Arthur742Ramos/dinitz-garg-goemans-counterexample-lean/actions/workflows/ci.yml)
 
-This repository independently formalizes the explicit three-dimensional
-polynomial map announced by Levent Alpöge in July 2026, together with the
-constant-Jacobian calculation and an explicit nontrivial fibre. It proves the
-usual dimension-three consequence over the complex numbers:
+This repository is a standalone Lean 4 and Mathlib formalization of the finite
+counterexample recorded in the Isabelle/AFP entry
+[A Formal Counterexample to the Cost-Preserving Single-Source Unsplittable
+Flow Conjecture](https://isa-afp.org/entries/Dinitz_Garg_Goemans_Counterexample.html).
 
-```lean
-theorem JacobianCounterexample.not_jacobian_conjecture_complex :
-    ¬ ∀ P : Fin 3 → MvPolynomial (Fin 3) ℂ,
-      IsUnit (MvPolynomial.jacobianDet P) →
-        Injective (MvPolynomial.evalMap P)
-```
+It models the seven-vertex, nine-arc directed instance with three terminal
+demands. The checked certificate has a feasible fractional flow of cost `58`
+and maximum demand `15`. Every unsplittable routing whose arc loads satisfy the
+weak Dinitz--Garg--Goemans additive bound therefore has cost at least `60`.
+Consequently, the cost-preserving conjecture is false, and the stronger strict
+congestion variant is false as well.
 
-The map has formal Jacobian determinant `-2` and sends
-`(0, 0, -1/4)`, `(1, -3/2, 13/2)`, and `(-1, 3/2, 13/2)` to
-`(-1/4, 0, 0)`. The project does not make a claim about the still-open
-two-dimensional Jacobian conjecture.
+The arithmetic is exact over `ℚ`. This is a faithful finite certificate for the
+usual real-valued statement: all data and inequalities are rational, and the
+same certificate embeds into `ℝ`. The project does not claim a general
+algorithmic or complexity-theoretic result.
 
 ## Repository map
 
-- `Challenge.lean` is the small statement surface a reader audits.
-- `Solution.lean` connects the same declarations to the completed proof.
-- `JacobianConjecture/` contains the definitions and proof development.
-- `comparator.json` tells Comparator which declarations must match.
-- `formalization.yaml` records provenance, authorship, automation, fidelity,
-  and review information.
-- `LICENSE` contains the Apache License 2.0 terms declared by the metadata.
+- `Challenge.lean` contains the auditable statement surface with deliberate
+  proof holes.
+- `Solution.lean` imports the completed proof development.
+- `DinitzGargGoemans/Definitions.lean` defines the finite path-flow model and
+  concrete graph.
+- `DinitzGargGoemans/Proof.lean` proves the graph classification, flow
+  certificate, cost gap, and conjecture refutations.
+- `comparator.json` specifies the declarations checked by Palomar Comparator.
+- `formalization.yaml` records provenance, authorship, scope, and review status.
 - `docbuild/` is the pinned doc-gen4 project.
-- `scripts/verify-comparator.sh` runs pinned Comparator, lean4export, NanoDa,
-  and Landrun revisions using the checked-in configuration.
 
 ## Verification
 
-The project uses Lean 4 v4.33.0 and a pinned Mathlib manifest:
+The repository uses Lean 4 `v4.33.0` and Mathlib `v4.33.0`:
 
 ```text
 lake exe cache get
 lake build
-(cd docbuild && lake build JacobianConjecture:docs)
+(cd docbuild && lake build DinitzGargGoemans:docs)
 ruby scripts/validate-formalization.rb
 ./scripts/verify-comparator.sh
 ```
 
-`Challenge.lean` contains deliberate `sorry` placeholders by design; the
-proved declarations are in `JacobianConjecture/Proof.lean` and are imported by
-`Solution.lean`. The final proof uses exact rational arithmetic and Mathlib's
-formal polynomial differentiation, not an external computer-algebra
-certificate.
+The final solution contains no `sorry` proofs and declares no axioms beyond
+the permitted Lean foundations checked by Comparator and NanoDa. The
+deliberate `sorry` placeholders occur only in `Challenge.lean`.
 
-## Sources and attribution
+## Attribution and submission
 
-The public source announcement is:
+The Lean project authors are Arthur Freitas Ramos, David Barros Hulak, and Ruy
+Jose Guerra Barretto de Queiroz, matching the authors of the AFP formalization.
+The mathematical source material and its provenance are listed in
+`formalization.yaml`; this repository reimplements the finite certificate and
+does not import Isabelle source.
 
-<https://x.com/__alpoge__/status/2079028340955197566>
-
-A related independent Lean formalization is pinned at:
-
-<https://github.com/deancureton/jacobian/tree/0d4a9212d874226ad81ce5a926becddfa94e6a88>
-
-The project is prepared for the [Palomar Registry](https://palomar-registry.org/).
-To submit it, use the [Palomar submission form](https://submit.palomar-registry.org/).
-Palomar submissions require a public repository, a fixed commit, and explicit
-maintainer authorization.
+The project is prepared for the
+[Palomar Registry](https://palomar-registry.org/). Submission uses the
+[Palomar submission form](https://submit.palomar-registry.org/) and requires a
+public repository, an exact immutable commit, and explicit maintainer
+authorization.
